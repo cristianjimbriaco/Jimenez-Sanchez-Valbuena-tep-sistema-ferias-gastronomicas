@@ -1,3 +1,6 @@
+# Jimenez-Sanchez-Valbuena-tep-sistema-ferias-gastron-micas
+Repositorio para el proyecto final de Topicos especiales de la programacion
+
 # Sistema distribuido para ferias gastronómicas
 
 Proyecto final – Tópicos Especiales de Programación
