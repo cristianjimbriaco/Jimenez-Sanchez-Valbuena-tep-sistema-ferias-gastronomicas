@@ -1,0 +1,60 @@
+version: '3.9'
+
+services:
+  postgres-users:
+    image: postgres:15
+    container_name: postgres-users
+    restart: always
+    environment:
+      POSTGRES_DB: users_db
+      POSTGRES_USER: users_user
+      POSTGRES_PASSWORD: users_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - users_data:/var/lib/postgresql/data
+
+  postgres-stands:
+    image: postgres:15
+    container_name: postgres-stands
+    restart: always
+    environment:
+      POSTGRES_DB: stands_db
+      POSTGRES_USER: stands_user
+      POSTGRES_PASSWORD: stands_pass
+    ports:
+      - "5434:5432"
+    volumes:
+      - stands_data:/var/lib/postgresql/data
+
+  postgres-products:
+    image: postgres:15
+    container_name: postgres-products
+    restart: always
+    environment:
+      POSTGRES_DB: products_db
+      POSTGRES_USER: products_user
+      POSTGRES_PASSWORD: products_pass
+    ports:
+      - "5435:5432"
+    volumes:
+      - products_data:/var/lib/postgresql/data
+
+  postgres-orders:
+    image: postgres:15
+    container_name: postgres-orders
+    restart: always
+    environment:
+      POSTGRES_DB: orders_db
+      POSTGRES_USER: orders_user
+      POSTGRES_PASSWORD: orders_pass
+    ports:
+      - "5436:5432"
+    volumes:
+      - orders_data:/var/lib/postgresql/data
+
+volumes:
+  users_data:
+  stands_data:
+  products_data:
+  orders_data:
