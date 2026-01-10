@@ -44,7 +44,7 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
 ## 🔐 MICROSERVICIO: USUARIOS Y AUTENTICACIÓN
 
 ### 🟢 TAREA 1 – Gestión de Usuarios
-**Responsable:** Integrante A  
+**Responsable:** Cristian Jimenez 
 **Rama:** `feature/1`
 
 #### Subtareas:
@@ -62,7 +62,7 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
 ---
 
 ### 🟢 TAREA 2 – Autenticación y Autorización
-**Responsable:** Integrante A  
+**Responsable:** Cristian Jimenez 
 **Rama:** `feature/2`
 
 #### Subtareas:
@@ -79,7 +79,7 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
 ## 🏪 MICROSERVICIO: PUESTOS GASTRONÓMICOS
 
 ### 🟢 TAREA 3 – Gestión de Puestos
-**Responsable:** Integrante B  
+**Responsable:** Luis Valbuena 
 **Rama:** `feature/3`
 
 #### Subtareas:
@@ -100,7 +100,7 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
 ## 🍔 MICROSERVICIO: PRODUCTOS Y CATÁLOGO
 
 ### 🟢 TAREA 4 – Gestión de Productos
-**Responsable:** Integrante B  
+**Responsable:** Luis Valbuena 
 **Rama:** `feature/4`
 
 #### Subtareas:
@@ -116,7 +116,7 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
 ---
 
 ### 🟢 TAREA 5 – Catálogo Público
-**Responsable:** Integrante B  
+**Responsable:** Luis Valbuena 
 **Rama:** `feature/5`
 
 #### Subtareas:
@@ -133,7 +133,7 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
 ## 🧾 MICROSERVICIO: PEDIDOS Y VENTAS
 
 ### 🟢 TAREA 6 – Pedidos
-**Responsable:** Integrante C  
+**Responsable:** Juan Sanchez
 **Rama:** `feature/6`
 
 #### Subtareas:
@@ -152,7 +152,7 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
 ---
 
 ### 🟢 TAREA 7 – Estadísticas y Panel del Organizador
-**Responsable:** Integrante C  
+**Responsable:** Juan Sanchez 
 **Rama:** `feature/7`
 
 #### Subtareas:
@@ -173,7 +173,7 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
 ## 🌐 INFRAESTRUCTURA Y TRANSVERSALES
 
 ### 🟢 TAREA 8 – API Gateway
-**Responsables:** Todo el equipo  
+**Responsables:** Por asignar 
 **Rama:** `feature/8`
 
 #### Subtareas:
@@ -186,7 +186,7 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
 ---
 
 ### 🟢 TAREA 9 – Logging, Errores y AOP
-**Responsables:** Todo el equipo  
+**Responsables:** Por asignar 
 **Rama:** `feature/9`
 
 #### Subtareas:
