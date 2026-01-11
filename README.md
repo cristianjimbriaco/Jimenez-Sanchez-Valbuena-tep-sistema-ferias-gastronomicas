@@ -62,16 +62,16 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
 ---
 
 ### 🟢 TAREA 2 – Autenticación y Autorización
-**Responsable:** Cristian Jimenez 
+**Responsable:** Cristian Jimenez  
 **Rama:** `feature/2`
 
 #### Subtareas:
-- 2.1 Login de usuarios
+- 2.1 Login de usuarios (integración con microservicio Users)
 - 2.2 Encriptación de contraseñas
 - 2.3 Emisión de JWT
 - 2.4 Guards de autenticación
 - 2.5 Guards de roles
-- 2.6 Decorators personalizados (@Roles)
+- 2.6 Decorators personalizados (`@Roles`)
 - 2.7 Validación de token para otros microservicios (RPC)
 
 ---
@@ -100,7 +100,7 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
 ## 🍔 MICROSERVICIO: PRODUCTOS Y CATÁLOGO
 
 ### 🟢 TAREA 4 – Gestión de Productos
-**Responsable:** Luis Valbuena 
+**Responsable:** Juan Sanchez
 **Rama:** `feature/4`
 
 #### Subtareas:
@@ -116,7 +116,7 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
 ---
 
 ### 🟢 TAREA 5 – Catálogo Público
-**Responsable:** Luis Valbuena 
+**Responsable:** Juan Sanchez
 **Rama:** `feature/5`
 
 #### Subtareas:
@@ -133,7 +133,7 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
 ## 🧾 MICROSERVICIO: PEDIDOS Y VENTAS
 
 ### 🟢 TAREA 6 – Pedidos
-**Responsable:** Juan Sanchez
+**Responsable:** Por asignar
 **Rama:** `feature/6`
 
 #### Subtareas:
@@ -152,7 +152,7 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
 ---
 
 ### 🟢 TAREA 7 – Estadísticas y Panel del Organizador
-**Responsable:** Juan Sanchez 
+**Responsable:** Por Asignar
 **Rama:** `feature/7`
 
 #### Subtareas:
@@ -209,3 +209,4 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
   - Se asignan revisores
   - Se realiza merge tras aprobación
 - La rama `main` se utiliza únicamente para la entrega final
+
