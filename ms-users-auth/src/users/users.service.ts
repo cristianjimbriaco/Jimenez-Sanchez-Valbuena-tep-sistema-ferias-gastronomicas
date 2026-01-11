@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserRole } from './enums/user-role.enum';
 
 @Injectable()
 export class UsersService {
@@ -13,6 +14,9 @@ export class UsersService {
     ) {}
 
     async create(dto: CreateUserDto): Promise<User> {
+        if (dto.role === UserRole.ORGANIZADOR) {//Mas adelante se cambiara este error por una exepcion RPC
+            throw new BadRequestException('No esta permitido registrar organizadores directamente');
+        }
         const user = this.usersRepository.create(dto);
         return this.usersRepository.save(user);
     }
