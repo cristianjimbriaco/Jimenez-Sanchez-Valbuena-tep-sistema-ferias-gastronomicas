@@ -209,4 +209,3 @@ El desarrollo del sistema se organiza en tareas numeradas, asignadas a los integ
   - Se asignan revisores
   - Se realiza merge tras aprobación
 - La rama `main` se utiliza únicamente para la entrega final
-
