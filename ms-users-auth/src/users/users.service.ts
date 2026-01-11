@@ -14,6 +14,16 @@ export class UsersService {
     ) {}
 
     async create(dto: CreateUserDto): Promise<User> {
+
+        //Validacion: Email duplicado
+        const existingUser = await this.usersRepository.findOne({
+            where: {email: dto.email}});
+
+        if (existingUser) {
+            throw new BadRequestException('Email ya registrado');
+        }
+
+        //Validacion: No permitir crear organizadores directamente
         if (dto.role === UserRole.ORGANIZADOR) {//Mas adelante se cambiara este error por una exepcion RPC
             throw new BadRequestException('No esta permitido registrar organizadores directamente');
         }
@@ -30,17 +40,29 @@ export class UsersService {
         if (!user) {
             throw new NotFoundException(`Usuario no encontrado`);
         }
+
+        if (!user.isActive) {
+            throw new BadRequestException('Usuario inactivo');
+        }
+
         return user;
     }
 
     async update(id: string, dto: UpdateUserDto): Promise<User> {
         const user = await this.findOneById(id);
+
+        if (!user.isActive) {
+            throw new BadRequestException('No se puede modificar usuario inactivo');
+        }
+
         Object.assign(user, dto);
         return this.usersRepository.save(user);
     }
 
     async remove(id: string): Promise<void> {
         const user = await this.findOneById(id);
+        user.isActive = false;
+        await this.usersRepository.save(user);
         await this.usersRepository.softRemove(user);
     }
 }

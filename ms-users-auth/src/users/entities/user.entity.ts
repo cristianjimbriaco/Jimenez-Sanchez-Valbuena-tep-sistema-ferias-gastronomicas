@@ -22,7 +22,7 @@ export class User {
     role: UserRole;
 
     @Column({ default: true })
-    activo: boolean;
+    isActive: boolean;
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
