@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -48,11 +48,20 @@ export class UsersService {
         return user;
     }
 
-    async update(id: string, dto: UpdateUserDto): Promise<User> {
+    async update(
+        id: string, 
+        dto: UpdateUserDto,
+        currentUserId: string
+    ): Promise<User> {
+        //Validacion: Un usuario solo puede modificarse a si mismo
+        if (id !== currentUserId) {
+            throw new ForbiddenException('No tiene permisos para modificar este usuario');
+        }
+
         const user = await this.findOneById(id);
 
         if (!user.isActive) {
-            throw new BadRequestException('No se puede modificar usuario inactivo');
+            throw new BadRequestException('No se puede modificar un usuario inactivo');
         }
 
         Object.assign(user, dto);
