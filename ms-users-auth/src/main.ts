@@ -31,7 +31,7 @@ async function bootstrap() {
 
 
   await app.startAllMicroservices();
-  await app.listen(3000);
+  //await app.listen(3000);
 
   console.log('HTTP en http://localhost:3000');
   console.log('RPC en puerto 3001');

@@ -40,6 +40,7 @@ export class UsersController {
     }
 
     //HTTP Methods para pruebas locales
+    /*
     @Post()
     createHttp(@Body() dto: CreateUserDto) {
         return this.usersService.create(dto);
@@ -64,5 +65,5 @@ export class UsersController {
     manageStand() {
         return { message: 'Emprendedor u organizador autorizado' };
     }
-
+    */
 }

@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { UsersModule } from './users/users.module';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
 
 @Module({
   imports: [
@@ -12,13 +11,12 @@ import { UsersModule } from './users/users.module';
         transport: Transport.TCP,
         options: {
           host: 'localhost',
-          port: 3001,
+          port: 3001, // puerto RPC del microservicio users
         },
       },
     ]),
-    UsersModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [UsersController],
+  providers: [UsersService],
 })
-export class AppModule {}
+export class UsersModule {}
