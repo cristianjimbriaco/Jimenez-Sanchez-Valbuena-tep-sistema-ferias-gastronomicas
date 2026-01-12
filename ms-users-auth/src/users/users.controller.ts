@@ -9,6 +9,7 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
     //RPC Methods para microservicios
+
     @MessagePattern({ cmd: 'create_user' })
     create(@Payload() dto: CreateUserDto) {
         return this.usersService.create(dto);
