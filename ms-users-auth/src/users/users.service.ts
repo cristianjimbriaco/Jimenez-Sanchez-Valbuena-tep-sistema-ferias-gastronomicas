@@ -5,6 +5,7 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRole } from './enums/user-role.enum';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -27,7 +28,10 @@ export class UsersService {
         if (dto.role === UserRole.ORGANIZADOR) {//Mas adelante se cambiara este error por una exepcion RPC
             throw new BadRequestException('No esta permitido registrar organizadores directamente');
         }
-        const user = this.usersRepository.create(dto);
+
+        const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+        const user = this.usersRepository.create({ ...dto, password: hashedPassword, isActive: true });
         return this.usersRepository.save(user);
     }
 
