@@ -1,12 +1,17 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Get, Req } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
+
+    //RPC Methods para microservicios
 
     @MessagePattern({ cmd: 'create_user' })
     create(@Payload() dto: CreateUserDto) {
@@ -33,4 +38,31 @@ export class UsersController {
     remove(@Payload() id: string) {
         return this.usersService.remove(id);
     }
+
+    //HTTP Methods para pruebas locales
+    @Post()
+    createHttp(@Body() dto: CreateUserDto) {
+        return this.usersService.create(dto);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('profile')
+    getProfile(@Req() req) {
+        return req.user;
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('organizador')
+    @Get('organizador-only')
+    getOrganizadorData() {
+        return { message: 'Solo organizadores pueden acceder' };
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('emprendedor', 'organizador')
+    @Post('manage-stand')
+    manageStand() {
+        return { message: 'Emprendedor u organizador autorizado' };
+    }
+
 }

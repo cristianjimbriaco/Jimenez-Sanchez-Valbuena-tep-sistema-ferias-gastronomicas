@@ -27,4 +27,10 @@ import { AuthModule } from './auth/auth.module';
   controllers: [AppController],
   providers: [AppService],
 })
+@Module({
+  imports: [
+    UsersModule,
+    AuthModule,
+  ],
+})
 export class AppModule {}
