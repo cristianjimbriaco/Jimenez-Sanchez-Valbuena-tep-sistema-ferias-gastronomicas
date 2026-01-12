@@ -24,11 +24,6 @@ export class UsersService {
             throw new BadRequestException('Email ya registrado');
         }
 
-        //Validacion: No permitir crear organizadores directamente
-        if (dto.role === UserRole.ORGANIZADOR) {//Mas adelante se cambiara este error por una exepcion RPC
-            throw new BadRequestException('No esta permitido registrar organizadores directamente');
-        }
-
         const hashedPassword = await bcrypt.hash(dto.password, 10);
 
         const user = this.usersRepository.create({ ...dto, password: hashedPassword, isActive: true });

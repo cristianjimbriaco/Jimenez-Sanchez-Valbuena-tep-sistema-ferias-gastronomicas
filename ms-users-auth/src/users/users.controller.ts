@@ -3,7 +3,9 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Controller('users')
 export class UsersController {
@@ -46,7 +48,21 @@ export class UsersController {
     @UseGuards(JwtAuthGuard)
     @Get('profile')
     getProfile(@Req() req) {
-    return req.user;
+        return req.user;
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('organizador')
+    @Get('organizador-only')
+    getOrganizadorData() {
+        return { message: 'Solo organizadores pueden acceder' };
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('emprendedor', 'organizador')
+    @Post('manage-stand')
+    manageStand() {
+        return { message: 'Emprendedor u organizador autorizado' };
     }
 
 }
