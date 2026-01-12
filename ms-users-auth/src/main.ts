@@ -1,19 +1,23 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-    AppModule,
-    {
-      transport: Transport.TCP,
-      options: {
-        host: '0.0.0.0',
-        port: 3001,
-      },
-    },
-  );
+  const app = await NestFactory.create(AppModule);
 
-  await app.listen();
+  // Microservicio RPC
+  app.connectMicroservice({
+    transport: Transport.TCP,
+    options: {
+      host: 'localhost',
+      port: 3001,
+    },
+  });
+
+  await app.startAllMicroservices();
+  await app.listen(3000);
+
+  console.log('HTTP en http://localhost:3000');
+  console.log('RPC en puerto 3001');
 }
 bootstrap();

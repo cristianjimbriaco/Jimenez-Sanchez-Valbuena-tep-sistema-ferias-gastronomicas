@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -8,6 +8,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
+    //RPC Methods para microservicios
     @MessagePattern({ cmd: 'create_user' })
     create(@Payload() dto: CreateUserDto) {
         return this.usersService.create(dto);
@@ -33,4 +34,11 @@ export class UsersController {
     remove(@Payload() id: string) {
         return this.usersService.remove(id);
     }
+
+    //HTTP Methods para pruebas locales
+    @Post()
+    createHttp(@Body() dto: CreateUserDto) {
+        return this.usersService.create(dto);
+    }
+
 }

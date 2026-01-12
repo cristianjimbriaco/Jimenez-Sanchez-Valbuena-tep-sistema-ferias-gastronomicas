@@ -74,4 +74,10 @@ export class UsersService {
         await this.usersRepository.save(user);
         await this.usersRepository.softRemove(user);
     }
+
+    async findByEmail(email: string) {
+        return this.usersRepository.findOne({
+            where: { email }});
+    }
+
 }
