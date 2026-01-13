@@ -2,7 +2,7 @@ import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 
 @Controller('auth')
 export class AuthController {
@@ -10,8 +10,8 @@ export class AuthController {
               private readonly jwtService: JwtService
   ) {}
 
-  @Post('login')
-  login(@Body() dto: LoginDto) {
+  @MessagePattern({ cmd: 'login' })
+  async loginMessage(@Payload() dto: LoginDto) {
     return this.authService.login(dto.email, dto.password);
   }
 
@@ -21,7 +21,7 @@ export class AuthController {
     try {
       return this.jwtService.verify(token);
     } catch (error) {
-      throw new UnauthorizedException('Token inválido');
+      throw new RpcException('Token inválido');
     }
   }
 }

@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class AuthService {
@@ -12,18 +13,14 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.usersService.findByEmail(email);
 
-    if (!user) {
-      throw new UnauthorizedException('Credenciales inválidas');
-    }
-
-    if (!user.isActive) {
-      throw new UnauthorizedException('Usuario inactivo');
+    if (!user || !user.isActive) {
+      throw new RpcException('Credenciales inválidas o usuario inactivo');
     }
 
     const passwordValid = await bcrypt.compare(password, user.password);
 
     if (!passwordValid) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      throw new RpcException('Credenciales inválidas');
     }
 
     const payload = { sub: user.id, email: user.email, role: user.role };
