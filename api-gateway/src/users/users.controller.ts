@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Post, UseGuards, Req} from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, UseGuards, Req } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -12,38 +12,44 @@ export class UsersController {
     private readonly usersClient: ClientProxy,
   ) {}
 
+  //Registro de usuarios (público)
   @Post()
-  async create(@Body() dto: any) {
+  create(@Body() dto: any) {
     return firstValueFrom(
       this.usersClient.send({ cmd: 'create_user' }, dto),
     );
   }
 
+  //Listar usuarios (requiere login)
+  @UseGuards(JwtAuthGuard)
   @Get()
-  async findAll() {
+  findAll() {
     return firstValueFrom(
       this.usersClient.send({ cmd: 'find_all_users' }, {}),
     );
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return firstValueFrom(
-      this.usersClient.send({ cmd: 'find_user_by_id' }, id),
-    );
-  }
-
+  //Perfil del usuario autenticado
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Req() req) {
     return req.user;
   }
 
+  //Ruta solo para organizadores
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('organizador')
   @Get('organizador-only')
   onlyOrganizador() {
     return { message: 'Acceso permitido solo a organizadores' };
   }
-  
+
+  //Obtener usuario por id (al final)
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return firstValueFrom(
+      this.usersClient.send({ cmd: 'find_user_by_id' }, id),
+    );
+  }
 }
