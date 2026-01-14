@@ -1,27 +1,30 @@
-import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { JwtService } from '@nestjs/jwt';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 
-@Controller('auth')
+@Controller()
 export class AuthController {
-  constructor(private readonly authService: AuthService, 
-              private readonly jwtService: JwtService
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
-  @Post('login')
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto.email, dto.password);
+  @MessagePattern({ cmd: 'register' })
+  register(@Payload() data: CreateUserDto) {
+    return this.authService.register(data);
   }
 
-  // RPC para validar token
+  @MessagePattern({ cmd: 'login' })
+  login(@Payload() data: LoginDto) {
+    return this.authService.login(data);
+  }
+
   @MessagePattern({ cmd: 'validate_token' })
   validateToken(@Payload() token: string) {
-    try {
-      return this.jwtService.verify(token);
-    } catch (error) {
-      throw new UnauthorizedException('Token inválido');
-    }
+    return this.authService.validateToken(token);
+  }
+
+  @MessagePattern({ cmd: 'validate_role' })
+  validateRole(@Payload() data: { userId: string; roles: string[] }) {
+    return this.authService.validateRole(data);
   }
 }

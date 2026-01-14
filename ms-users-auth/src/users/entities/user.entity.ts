@@ -1,37 +1,38 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
-import { UserRole } from '../enums/user-role.enum';
-import { Exclude } from 'class-transformer';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
-@Entity('users')
+export enum UserRole {
+  CLIENT = 'cliente',
+  ENTREPRENEUR = 'emprendedor',
+  ORGANIZER = 'organizador',
+}
+
+@Entity({ name: 'users' })
 export class User {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column({ length: 100 })
-    fullName: string;
+  @Column({ type: 'varchar', length: 255, unique: true })
+  email: string;
 
-    @Column({ unique: true })
-    email: string;
+  // En la DB se llama password_hash
+  @Column({ name: 'password_hash', type: 'varchar', length: 255 })
+  passwordHash: string;
 
-    @Exclude()
-    @Column()
-    password: string;
+  @Column({ type: 'varchar', length: 50 })
+  role: UserRole;
 
-    @Column({   
-        type: 'enum',
-        enum: UserRole,
-    })
-    role: UserRole;
+  @Column({ name: 'full_name', type: 'varchar', length: 255 })
+  fullName: string;
 
-    @Column({ default: true })
-    isActive: boolean;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  createdAt: Date;
 
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
-
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
-
-    @DeleteDateColumn({ name: 'deleted_at' })
-    deletedAt?: Date;
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  updatedAt: Date;
 }
