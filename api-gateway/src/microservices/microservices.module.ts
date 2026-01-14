@@ -12,6 +12,14 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
           port: Number(process.env.USERS_AUTH_PORT) || 3001,
         },
       },
+      {
+        name: 'ORDERS_SERVICE',
+        transport: Transport.TCP,
+        options: {
+          host: 'localhost',
+          port: 3004,
+        },
+      }
     ]),
   ],
   exports: [ClientsModule],
