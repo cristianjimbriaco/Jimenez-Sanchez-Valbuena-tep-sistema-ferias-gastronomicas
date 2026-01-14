@@ -52,12 +52,13 @@ export class ProductsService {
     }
 
     if (filters?.category) {
-      qb.andWhere('LOWER(p.category) = LOWER(:category)', {
+      qb.andWhere('p.category ILIKE :category', {
         category: filters.category.trim(),
       });
     }
 
-    // price está en DB como numeric; se compara bien en SQL
+    // price en DB es numeric/decimal (en tu entity lo manejas como string con toFixed)
+    // En SQL se compara como número sin problema.
     if (filters?.minPrice !== undefined) {
       if (!Number.isFinite(filters.minPrice)) {
         throw new BadRequestException('minPrice must be a valid number');
