@@ -25,7 +25,11 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
 <<<<<<< HEAD
+
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> 700271c816e22ac838cda55868d6ed07e858f8da
     "@nestjs/microservices": "^11.1.11",
 >>>>>>> 69d92f1ce248186a688d26f69d326802e0bb9d93
     "@nestjs/passport": "^11.0.5",

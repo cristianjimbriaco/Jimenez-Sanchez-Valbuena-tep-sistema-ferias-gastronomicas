@@ -22,6 +22,18 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
       },
       {
         name: 'PRODUCTS_SERVICE',
+<<<<<<< HEAD
+        transport: Transport.TCP,
+        options: { host: 'localhost', port: 3003 },
+      },
+      {
+        name: 'ORDERS_SERVICE',
+        transport: Transport.TCP,
+        options: {
+          host: 'localhost',
+          port: 3004,
+        },
+=======
         transport: Transport.TCP,
         options: {
           host: process.env.PRODUCTS_HOST || 'localhost',
@@ -35,6 +47,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
           host: 'localhost',
           port: 3004,
         },
+>>>>>>> 700271c816e22ac838cda55868d6ed07e858f8da
       }
     ]),
   ],
