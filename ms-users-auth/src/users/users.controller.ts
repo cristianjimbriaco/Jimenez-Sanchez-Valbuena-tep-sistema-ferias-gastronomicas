@@ -1,69 +1,59 @@
-import { Body, Controller, Post, UseGuards, Get, Req } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
 
-@Controller('users')
+@Controller()
 export class UsersController {
-    constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
-    //RPC Methods para microservicios
-
-    @MessagePattern({ cmd: 'create_user' })
-    create(@Payload() dto: CreateUserDto) {
-        return this.usersService.create(dto);
+  @MessagePattern({ cmd: 'register' })
+  async register(@Payload() dto: CreateUserDto) {
+    try {
+      return await this.usersService.create(dto);
+    } catch (e: any) {
+      throw new RpcException(e?.message || 'Error registrando usuario');
     }
+  }
 
-    @MessagePattern({ cmd: 'find_all_users' })
-    findAll() {
-        return this.usersService.findAll();
+  @MessagePattern({ cmd: 'find_user_by_id' })
+  async findById(@Payload() payload: { id: string }) {
+    try {
+      return await this.usersService.findById(payload.id);
+    } catch (e: any) {
+      throw new RpcException(e?.message || 'Error buscando usuario');
     }
+  }
 
-    @MessagePattern({ cmd: 'find_user_by_id' })
-    findOneById(@Payload() id: string) {
-        return this.usersService.findOneById(id);
+  @MessagePattern({ cmd: 'update_user' })
+  async update(
+    @Payload()
+    payload: { id: string; dto: UpdateUserDto; currentUserId: string },
+  ) {
+    try {
+      return await this.usersService.update(payload.id, payload.dto, payload.currentUserId);
+    } catch (e: any) {
+      throw new RpcException(e?.message || 'Error actualizando usuario');
     }
+  }
 
-    @MessagePattern({ cmd: 'update_user' })
-    update(@Payload() payload: { id: string; dto: UpdateUserDto; currentUserId: string }
-    ) {
-        return this.usersService.update(payload.id, payload.dto, payload.currentUserId);
+  @MessagePattern({ cmd: 'remove_user' })
+  async remove(@Payload() payload: { id: string }) {
+    try {
+      await this.usersService.remove(payload.id);
+      return { ok: true };
+    } catch (e: any) {
+      throw new RpcException(e?.message || 'Error eliminando usuario');
     }
+  }
 
-    @MessagePattern({ cmd: 'remove_user' })
-    remove(@Payload() id: string) {
-        return this.usersService.remove(id);
+  @MessagePattern({ cmd: 'find_all_users' })
+  async findAll() {
+    try {
+      return await this.usersService.findAll();
+    } catch (e: any) {
+      throw new RpcException(e?.message || 'Error listando usuarios');
     }
-
-    //HTTP Methods para pruebas locales
-    /*
-    @Post()
-    createHttp(@Body() dto: CreateUserDto) {
-        return this.usersService.create(dto);
-    }
-
-    @UseGuards(JwtAuthGuard)
-    @Get('profile')
-    getProfile(@Req() req) {
-        return req.user;
-    }
-
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('organizador')
-    @Get('organizador-only')
-    getOrganizadorData() {
-        return { message: 'Solo organizadores pueden acceder' };
-    }
-
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('emprendedor', 'organizador')
-    @Post('manage-stand')
-    manageStand() {
-        return { message: 'Emprendedor u organizador autorizado' };
-    }
-    */
+  }
 }

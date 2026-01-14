@@ -1,82 +1,110 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+import * as bcrypt from 'bcrypt';
+
+import { User, UserRole } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserRole } from './enums/user-role.enum';
-import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-    constructor(
-        @InjectRepository(User)
-        private readonly usersRepository: Repository<User>,
-    ) {}
+  constructor(
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+  ) {}
 
-    async create(dto: CreateUserDto): Promise<User> {
+  async create(dto: CreateUserDto): Promise<User> {
+    const existing = await this.usersRepository.findOne({
+      where: { email: dto.email },
+    });
 
-        //Validacion: Email duplicado
-        const existingUser = await this.usersRepository.findOne({
-            where: {email: dto.email}});
-
-        if (existingUser) {
-            throw new BadRequestException('Email ya registrado');
-        }
-
-        const hashedPassword = await bcrypt.hash(dto.password, 10);
-
-        const user = this.usersRepository.create({ ...dto, password: hashedPassword, isActive: true });
-        return this.usersRepository.save(user);
+    if (existing) {
+      throw new BadRequestException('Email ya registrado');
     }
 
-    async findAll(): Promise<User[]> {
-        return this.usersRepository.find();
+    // Validar role (por si DTO no lo está validando bien)
+    const allowedRoles = Object.values(UserRole);
+    if (!allowedRoles.includes(dto.role as any)) {
+      throw new BadRequestException(
+        `Rol inválido. Debe ser uno de: ${allowedRoles.join(', ')}`,
+      );
     }
 
-    async findOneById(id: string): Promise<User> {
-        const user = await this.usersRepository.findOne({where: {id}});
-        if (!user) {
-            throw new NotFoundException(`Usuario no encontrado`);
-        }
+    const hashed = await bcrypt.hash(dto.password, 10);
 
-        if (!user.isActive) {
-            throw new BadRequestException('Usuario inactivo');
-        }
+    const user = this.usersRepository.create({
+      email: dto.email,
+      passwordHash: hashed,
+      role: dto.role as any,
+      fullName: (dto as any).fullName ?? (dto as any).full_name ?? dto['full_name'],
+    });
 
-        return user;
+    if (!user.fullName) {
+      throw new BadRequestException('fullName es obligatorio');
     }
 
-    async update(
-        id: string, 
-        dto: UpdateUserDto,
-        currentUserId: string
-    ): Promise<User> {
-        //Validacion: Un usuario solo puede modificarse a si mismo
-        if (id !== currentUserId) {
-            throw new ForbiddenException('No tiene permisos para modificar este usuario');
-        }
+    return this.usersRepository.save(user);
+  }
 
-        const user = await this.findOneById(id);
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.find();
+  }
 
-        if (!user.isActive) {
-            throw new BadRequestException('No se puede modificar un usuario inactivo');
-        }
+  async findById(id: string): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    return user;
+  }
 
-        Object.assign(user, dto);
-        return this.usersRepository.save(user);
+  // Alias por compatibilidad si algún archivo viejo lo llama
+  async findOneById(id: string): Promise<User> {
+    return this.findById(id);
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { email } });
+  }
+
+  /**
+   * Update de perfil:
+   * - Solo se puede actualizar a sí mismo
+   * - No se permite cambiar email/role/password aquí (perfil básico)
+   */
+  async update(
+    id: string,
+    dto: UpdateUserDto,
+    currentUserId: string,
+  ): Promise<User> {
+    if (id !== currentUserId) {
+      throw new ForbiddenException('No puedes modificar el perfil de otro usuario');
     }
 
-    async remove(id: string): Promise<void> {
-        const user = await this.findOneById(id);
-        user.isActive = false;
-        await this.usersRepository.save(user);
-        await this.usersRepository.softRemove(user);
-    }
+    const user = await this.findById(id);
 
-    async findByEmail(email: string) {
-        return this.usersRepository.findOne({
-            where: { email }});
-    }
+    // Bloqueamos campos sensibles aunque el DTO los incluya
+    const { email, role, password, passwordHash, ...safeDto } = (dto as any) ?? {};
 
+    // Permitimos solo fullName (y otros campos futuros si existen)
+    if (safeDto.fullName !== undefined) user.fullName = safeDto.fullName;
+
+    // Si tu UpdateUserDto trae full_name por error, lo soportamos igual
+    if (safeDto.full_name !== undefined) user.fullName = safeDto.full_name;
+
+    return this.usersRepository.save(user);
+  }
+
+  /**
+   * El modelo de la profe NO tiene deleted_at ni isActive,
+   * así que hacemos borrado duro (delete).
+   */
+  async remove(id: string): Promise<void> {
+    const user = await this.findById(id);
+    await this.usersRepository.remove(user);
+  }
 }

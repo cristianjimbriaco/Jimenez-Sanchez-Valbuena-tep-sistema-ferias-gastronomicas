@@ -1,33 +1,68 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { RpcException } from '@nestjs/microservices';
+
+import { UsersService } from '../users/users.service';
+import { LoginDto } from './dto/login.dto';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly usersService: UsersService,
-              private readonly jwtService: JwtService
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async login(email: string, password: string) {
-    const user = await this.usersService.findByEmail(email);
+  async register(data: CreateUserDto) {
+    const user = await this.usersService.create(data);
 
-    if (!user || !user.isActive) {
-      throw new RpcException('Credenciales inválidas o usuario inactivo');
+    // Importante: no devuelvas passwordHash
+    const { passwordHash, ...safeUser } = user as any;
+
+    return { message: 'User created', user: safeUser };
+  }
+
+  async login(dto: LoginDto) {
+    const user = await this.usersService.findByEmail(dto.email);
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    const passwordValid = await bcrypt.compare(password, user.password);
-
-    if (!passwordValid) {
-      throw new RpcException('Credenciales inválidas');
+    const ok = await bcrypt.compare(dto.password, user.passwordHash);
+    if (!ok) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    // Incluimos email en el token porque tú lo devuelves en validateToken()
+    const payload = {
+      sub: user.id,
+      role: user.role,
+      email: user.email,
+    };
 
     return {
       access_token: this.jwtService.sign(payload),
     };
   }
-}
 
+  async validateToken(token: string) {
+    try {
+      const payload = this.jwtService.verify(token);
+      return {
+        userId: payload.sub,
+        role: payload.role,
+        email: payload.email,
+      };
+    } catch (e) {
+      throw new UnauthorizedException('Token inválido');
+    }
+  }
+
+  async validateRole(data: { userId: string; roles: string[] }) {
+    const user = await this.usersService.findById(data.userId);
+    if (!user) return false;
+
+    return data.roles.includes(user.role);
+  }
+}

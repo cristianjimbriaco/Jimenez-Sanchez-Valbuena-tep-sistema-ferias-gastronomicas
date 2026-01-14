@@ -1,7 +1,5 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller, Post, Body, Inject } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { Inject } from '@nestjs/common';
-import { firstValueFrom } from 'rxjs';
 
 @Controller('auth')
 export class AuthController {
@@ -11,12 +9,27 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  async login(@Body() body: { email: string; password: string }) {
-    return firstValueFrom(
-      this.usersAuthClient.send(
-        { cmd: 'login' },
-        body,
-      ),
+  login(@Body() body: any) {
+    return this.usersAuthClient.send(
+      { cmd: 'login' },
+      body,
     );
   }
+
+  @Post('register')
+  register(@Body() body: any) {
+    return this.usersAuthClient.send(
+      { cmd: 'register' },
+      body,
+    );
+  }
+
+  @Post('validate')
+  validate(@Body('token') token: string) {
+    return this.usersAuthClient.send(
+      { cmd: 'validate_token' },
+      token, // 👈 solo el string
+    );
+  }
+
 }
