@@ -24,10 +24,8 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
-<<<<<<< HEAD
-=======
+
     "@nestjs/microservices": "^11.1.11",
->>>>>>> 69d92f1ce248186a688d26f69d326802e0bb9d93
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "class-transformer": "^0.5.1",

@@ -1,42 +1,29 @@
-import {
-  IsBoolean,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsPositive,
-  IsString,
-  IsUUID,
-  MaxLength,
-  Min,
-} from 'class-validator';
+import { IsUUID, IsString, IsNumber, Min, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreateProductDto {
   @IsUUID()
   standId: string;
 
   @IsString()
-  @IsNotEmpty()
-  @MaxLength(120)
   name: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   description?: string;
 
   @IsString()
-  @IsNotEmpty()
-  @MaxLength(60)
   category: string;
 
-  @IsPositive()
+  @IsNumber()
+  @Min(0)
   price: number;
 
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
   isAvailable?: boolean;
 
-  @IsInt()
-  @Min(0)
   @IsOptional()
+  @IsNumber()
+  @Min(0)
   stock?: number;
 }
