@@ -13,6 +13,14 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         },
       },
       {
+        name: 'STANDS_SERVICE',
+        transport: Transport.TCP,
+        options: {
+          host: 'localhost',
+          port: 3002, // ms-stands
+        },
+      },
+      {
         name: 'ORDERS_SERVICE',
         transport: Transport.TCP,
         options: {

@@ -1,14 +1,13 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { RpcException } from '@nestjs/microservices';
+
 import { Stand, StandStatus } from './stand.entity';
 import { CreateStandDto } from './dto/create-stand.dto';
 import { UpdateStandDto } from './dto/update-stand.dto';
+
+type JwtUser = { userId: string; role: string; email?: string };
 
 @Injectable()
 export class StandsService {
@@ -17,94 +16,125 @@ export class StandsService {
     private readonly repo: Repository<Stand>,
   ) {}
 
-  create(dto: CreateStandDto) {
-    const stand = this.repo.create(dto);
-    return this.repo.save(stand);
-  }
-
-  findAll() {
-    return this.repo.find({ order: { createdAt: 'DESC' } });
-  }
-
-  async findOne(id: string) {
-    const stand = await this.repo.findOne({ where: { id } });
-    if (!stand) {
-      throw new NotFoundException('Stand no encontrado');
+  private ensureRole(user: JwtUser, allowed: string[]) {
+    if (!allowed.includes(user.role)) {
+      throw new RpcException({ statusCode: 403, message: 'Forbidden (rol no permitido)' });
     }
-    return stand;
   }
 
   private ensureOwner(stand: Stand, userId: string) {
     if (stand.entrepreneurId !== userId) {
-      throw new ForbiddenException('Solo el dueño puede gestionar este puesto');
+      throw new RpcException({ statusCode: 403, message: 'Solo el dueño puede gestionar este puesto' });
     }
   }
 
-  async update(id: string, dto: UpdateStandDto, userId: string) {
-    const stand = await this.findOne(id);
-    this.ensureOwner(stand, userId);
+  private async getOr404(id: string) {
+    const stand = await this.repo.findOne({ where: { id } });
+    if (!stand) throw new RpcException({ statusCode: 404, message: 'Puesto no encontrado' });
+    return stand;
+  }
 
-    // Reglas opcionales: no permitir cambiar status por update normal
-    // (status se maneja por approve/activate/inactivate)
-    if ((dto as any).status) {
-      throw new BadRequestException(
-        'No puedes cambiar status por update. Usa approve/activate/inactivate.',
-      );
-    }
+  // Emprendedor crea: queda pendiente
+  async create(payload: { user: JwtUser; dto: CreateStandDto }) {
+    const { user, dto } = payload;
+    this.ensureRole(user, ['emprendedor']);
 
-    Object.assign(stand, dto);
+    const stand = this.repo.create({
+      name: dto.name,
+      description: dto.description,
+      entrepreneurId: user.userId,
+      status: StandStatus.PENDING,
+    });
+
     return this.repo.save(stand);
   }
 
-  async remove(id: string, userId: string) {
-    const stand = await this.findOne(id);
-    this.ensureOwner(stand, userId);
-
-    await this.repo.remove(stand);
-    return { deleted: true, id };
+  async findById(payload: { id: string }) {
+    return this.getOr404(payload.id);
   }
 
-  // ✅ Solo organizador: pendiente -> aprobado
-  async approve(id: string) {
-    const stand = await this.findOne(id);
+  // Catálogo público: solo activos
+  async listActive() {
+    return this.repo.find({
+      where: { status: StandStatus.ACTIVE },
+      order: { createdAt: 'DESC' },
+    });
+  }
 
+  // (Útil) listar por emprendedor (dueño)
+  async listMine(payload: { user: JwtUser }) {
+    this.ensureRole(payload.user, ['emprendedor']);
+    return this.repo.find({
+      where: { entrepreneurId: payload.user.userId },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async update(payload: { user: JwtUser; id: string; dto: UpdateStandDto }) {
+    const { user, id, dto } = payload;
+    this.ensureRole(user, ['emprendedor']);
+
+    const stand = await this.getOr404(id);
+    this.ensureOwner(stand, user.userId);
+
+    // No permitir cambiar status/owner por dto (solo name/description)
+    if (dto.name !== undefined) stand.name = dto.name;
+    if (dto.description !== undefined) stand.description = dto.description;
+
+    return this.repo.save(stand);
+  }
+
+  async remove(payload: { user: JwtUser; id: string }) {
+    const { user, id } = payload;
+    this.ensureRole(user, ['emprendedor']);
+
+    const stand = await this.getOr404(id);
+    this.ensureOwner(stand, user.userId);
+
+    await this.repo.remove(stand);
+    return { ok: true, id };
+  }
+
+  // Organizador: pendiente -> aprobado
+  async approve(payload: { user: JwtUser; id: string }) {
+    this.ensureRole(payload.user, ['organizador']);
+
+    const stand = await this.getOr404(payload.id);
     if (stand.status !== StandStatus.PENDING) {
-      throw new BadRequestException('Solo se puede aprobar un puesto pendiente');
+      throw new RpcException({ statusCode: 400, message: 'Solo se puede aprobar un puesto pendiente' });
     }
 
     stand.status = StandStatus.APPROVED;
     return this.repo.save(stand);
   }
 
-  // ✅ Solo dueño emprendedor: aprobado/inactivo -> activo
-  async activate(id: string, userId: string) {
-    const stand = await this.findOne(id);
-    this.ensureOwner(stand, userId);
+  // Emprendedor dueño: aprobado/inactivo -> activo
+  async activate(payload: { user: JwtUser; id: string }) {
+    this.ensureRole(payload.user, ['emprendedor']);
 
-    if (
-      stand.status !== StandStatus.APPROVED &&
-      stand.status !== StandStatus.INACTIVE
-    ) {
-      throw new BadRequestException(
-        'Solo se puede activar un puesto aprobado o inactivo',
-      );
+    const stand = await this.getOr404(payload.id);
+    this.ensureOwner(stand, payload.user.userId);
+
+    if (![StandStatus.APPROVED, StandStatus.INACTIVE].includes(stand.status)) {
+      throw new RpcException({ statusCode: 400, message: 'Solo se puede activar un puesto aprobado o inactivo' });
     }
 
     stand.status = StandStatus.ACTIVE;
     return this.repo.save(stand);
   }
 
-  // ✅ Solo dueño emprendedor: activo -> inactivo
-  async inactivate(id: string, userId: string) {
-    const stand = await this.findOne(id);
-    this.ensureOwner(stand, userId);
+  // Emprendedor dueño: activo -> inactivo
+  async inactivate(payload: { user: JwtUser; id: string }) {
+    this.ensureRole(payload.user, ['emprendedor']);
+
+    const stand = await this.getOr404(payload.id);
+    this.ensureOwner(stand, payload.user.userId);
 
     if (stand.status !== StandStatus.ACTIVE) {
-      throw new BadRequestException('Solo se puede inactivar un puesto activo');
+      throw new RpcException({ statusCode: 400, message: 'Solo se puede inactivar un puesto activo' });
     }
 
     stand.status = StandStatus.INACTIVE;
     return this.repo.save(stand);
   }
 }
-
