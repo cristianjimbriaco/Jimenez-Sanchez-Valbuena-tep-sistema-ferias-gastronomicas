@@ -1,26 +1,31 @@
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
+import { Transport } from '@nestjs/microservices';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Validaciones DTO globales
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // elimina campos extra
-      forbidNonWhitelisted: true, // si mandan campos extra -> 400
-      transform: true, // transforma types (ej: "1" -> 1) cuando aplica
+      whitelist: true,
+      transform: true,
     }),
   );
 
-  const config = app.get(ConfigService);
-  const port = Number(config.get('PORT')) || 3002; // 3002 por ejemplo para ms-products
-  await app.listen(port);
-  console.log(`[ms-products] running on port ${port}`);
+  app.connectMicroservice({
+    transport: Transport.TCP,
+    options: {
+      host: process.env.PRODUCTS_HOST || 'localhost',
+      port: Number(process.env.PRODUCTS_PORT) || 3002,
+    },
+  });
+
+  await app.startAllMicroservices();
+  await app.listen(3003);
+
+  console.log('[ms-products] HTTP running on port 3003');
+  console.log('[ms-products] TCP running on port 3002');
 }
-bootstrap().catch((err) => {
-  console.error('[ms-products] Bootstrap failed', err);
-  process.exit(1);
-});
+
+void bootstrap();

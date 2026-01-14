@@ -26,6 +26,7 @@ export class ProductsService {
       stock,
     });
 
+    // Regla: sin stock no puede aparecer como disponible
     if (product.stock === 0) product.isAvailable = false;
 
     return this.repo.save(product);
@@ -39,12 +40,37 @@ export class ProductsService {
 
   async findAll(filters?: {
     standId?: string;
+    category?: string;
+    minPrice?: number;
+    maxPrice?: number;
     onlyAvailable?: boolean;
   }): Promise<Product[]> {
     const qb = this.repo.createQueryBuilder('p');
 
     if (filters?.standId) {
       qb.andWhere('p.standId = :standId', { standId: filters.standId });
+    }
+
+    if (filters?.category) {
+      qb.andWhere('p.category ILIKE :category', {
+        category: filters.category.trim(),
+      });
+    }
+
+    // price en DB es numeric/decimal (en tu entity lo manejas como string con toFixed)
+    // En SQL se compara como número sin problema.
+    if (filters?.minPrice !== undefined) {
+      if (!Number.isFinite(filters.minPrice)) {
+        throw new BadRequestException('minPrice must be a valid number');
+      }
+      qb.andWhere('p.price >= :minPrice', { minPrice: filters.minPrice });
+    }
+
+    if (filters?.maxPrice !== undefined) {
+      if (!Number.isFinite(filters.maxPrice)) {
+        throw new BadRequestException('maxPrice must be a valid number');
+      }
+      qb.andWhere('p.price <= :maxPrice', { maxPrice: filters.maxPrice });
     }
 
     if (filters?.onlyAvailable) {
