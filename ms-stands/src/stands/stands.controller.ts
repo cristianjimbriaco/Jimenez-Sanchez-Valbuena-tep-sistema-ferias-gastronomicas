@@ -1,103 +1,66 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  ForbiddenException,
-  Get,
-  Headers,
-  Param,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { StandsService } from './stands.service';
 import { CreateStandDto } from './dto/create-stand.dto';
 import { UpdateStandDto } from './dto/update-stand.dto';
 
-type UserRole = 'emprendedor' | 'organizador';
-
-function getUserContext(headers: any) {
-  const userId = headers['x-user-id'];
-  const role = headers['x-user-role'] as UserRole;
-
-  return { userId, role };
-}
-
-@Controller('stands')
+@Controller()
 export class StandsController {
   constructor(private readonly standsService: StandsService) {}
 
-  @Post()
-  create(@Body() dto: CreateStandDto) {
-    // Crear puesto: lo hace el emprendedor (por ahora no validamos role aquí)
-    return this.standsService.create(dto);
+  // --- CRUD del emprendedor ---
+  @MessagePattern({ cmd: 'stands_create' })
+  create(@Payload() payload: { user: any; dto: CreateStandDto }) {
+    return this.standsService.create(payload);
   }
 
-  @Get()
-  findAll() {
-    return this.standsService.findAll();
+  @MessagePattern({ cmd: 'stands_update' })
+  update(@Payload() payload: { user: any; id: string; dto: UpdateStandDto }) {
+    return this.standsService.update(payload);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.standsService.findOne(id);
+  @MessagePattern({ cmd: 'stands_remove' })
+  remove(@Payload() payload: { user: any; id: string }) {
+    return this.standsService.remove(payload);
   }
 
-  // ✅ update solo dueño (x-user-id)
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() dto: UpdateStandDto,
-    @Headers() headers: any,
-  ) {
-    const { userId } = getUserContext(headers);
-    if (!userId) throw new ForbiddenException('Falta header x-user-id');
-
-    return this.standsService.update(id, dto, userId);
+  @MessagePattern({ cmd: 'stands_list_mine' })
+  listMine(@Payload() payload: { user: any }) {
+    return this.standsService.listMine(payload);
   }
 
-  // ✅ delete solo dueño (x-user-id)
-  @Delete(':id')
-  remove(@Param('id') id: string, @Headers() headers: any) {
-    const { userId } = getUserContext(headers);
-    if (!userId) throw new ForbiddenException('Falta header x-user-id');
-
-    return this.standsService.remove(id, userId);
+  // --- Aprobación organizador ---
+  @MessagePattern({ cmd: 'stands_approve' })
+  approve(@Payload() payload: { user: any; id: string }) {
+    return this.standsService.approve(payload);
   }
 
-  // ✅ aprobar: solo organizador
-  @Patch(':id/approve')
-  approve(@Param('id') id: string, @Headers() headers: any) {
-    const { role } = getUserContext(headers);
-    if (role !== 'organizador') {
-      throw new ForbiddenException('Solo organizador puede aprobar');
-    }
-
-    return this.standsService.approve(id);
+  // --- Activación/Inactivación emprendedor ---
+  @MessagePattern({ cmd: 'stands_activate' })
+  activate(@Payload() payload: { user: any; id: string }) {
+    return this.standsService.activate(payload);
   }
 
-  // ✅ activar: solo emprendedor dueño
-  @Patch(':id/activate')
-  activate(@Param('id') id: string, @Headers() headers: any) {
-    const { role, userId } = getUserContext(headers);
-
-    if (!userId) throw new ForbiddenException('Falta header x-user-id');
-    if (role !== 'emprendedor') {
-      throw new ForbiddenException('Solo emprendedor puede activar');
-    }
-
-    return this.standsService.activate(id, userId);
+  @MessagePattern({ cmd: 'stands_inactivate' })
+  inactivate(@Payload() payload: { user: any; id: string }) {
+    return this.standsService.inactivate(payload);
   }
 
-  // ✅ inactivar: solo emprendedor dueño
-  @Patch(':id/inactivate')
-  inactivate(@Param('id') id: string, @Headers() headers: any) {
-    const { role, userId } = getUserContext(headers);
+  // --- Consultas ---
+  // Compatibilidad con ms-orders (tu service usa stalls_get_by_id):
+  @MessagePattern({ cmd: 'stalls_get_by_id' })
+  findForOrders(@Payload() payload: { id: string }) {
+    return this.standsService.findById(payload);
+  }
 
-    if (!userId) throw new ForbiddenException('Falta header x-user-id');
-    if (role !== 'emprendedor') {
-      throw new ForbiddenException('Solo emprendedor puede inactivar');
-    }
+  // patrón alternativo
+  @MessagePattern({ cmd: 'stands_get_by_id' })
+  findById(@Payload() payload: { id: string }) {
+    return this.standsService.findById(payload);
+  }
 
-    return this.standsService.inactivate(id, userId);
+  @MessagePattern({ cmd: 'stands_list_active' })
+  listActive() {
+    return this.standsService.listActive();
   }
 }

@@ -4,6 +4,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 
 export enum StandStatus {
@@ -24,16 +25,16 @@ export class Stand {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
+  @Index()
   @Column({ type: 'uuid' })
   entrepreneurId: string;
 
   @Column({ type: 'enum', enum: StandStatus, default: StandStatus.PENDING })
   status: StandStatus;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
-

@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { OrdersModule } from './orders/orders.module';
+import { OrganizerModule } from './organizer/organizer.module';
+import { StandsModule } from './stands/stands.module';
 import { CatalogModule } from './catalog/catalog.module';
 
 @Module({
@@ -11,6 +13,8 @@ import { CatalogModule } from './catalog/catalog.module';
     AuthModule,
     UsersModule,
     OrdersModule,
+    OrganizerModule,
+    StandsModule,
     CatalogModule,
   ],
 })

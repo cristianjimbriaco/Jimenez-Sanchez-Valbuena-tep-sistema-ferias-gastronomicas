@@ -1,12 +1,11 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
-import { PRODUCTS_SERVICE } from '../microservices/microservices.module';
 
 @Controller('catalog')
 export class CatalogController {
   constructor(
-    @Inject(PRODUCTS_SERVICE) private readonly productsClient: ClientProxy,
+    @Inject('PRODUCTS_SERVICE') private readonly productsClient: ClientProxy,
   ) {}
 
   @Get('products')

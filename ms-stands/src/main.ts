@@ -1,9 +1,16 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { Transport } from '@nestjs/microservices';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.createMicroservice(AppModule, {
+    transport: Transport.TCP,
+    options: {
+      host: 'localhost',
+      port: Number(process.env.STANDS_PORT) || 3002,
+    },
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -13,6 +20,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen();
+  console.log(`ms-stands escuchando en TCP ${process.env.STANDS_PORT || 3002}`);
 }
 bootstrap();

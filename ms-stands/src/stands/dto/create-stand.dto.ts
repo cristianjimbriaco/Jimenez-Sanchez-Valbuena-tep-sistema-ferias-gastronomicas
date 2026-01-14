@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateStandDto {
   @IsString()
@@ -9,7 +9,4 @@ export class CreateStandDto {
   @IsOptional()
   @IsString()
   description?: string;
-
-  @IsUUID()
-  entrepreneurId: string;
 }
